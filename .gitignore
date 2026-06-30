@@ -296,6 +296,13 @@ ServiceFabricBackup/
 *.ldf
 *.ndf
 
+# SQLite (banco gerado em runtime pela demo)
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
 # Business Intelligence projects
 *.rdl.data
 *.bim.layout

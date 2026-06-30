@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/EfCoreDemo.Api/EfCoreDemo.Api.csproj" />
+    <Project Path="src/EfCoreDemo.Domain/EfCoreDemo.Domain.csproj" />
+    <Project Path="src/EfCoreDemo.Infrastructure/EfCoreDemo.Infrastructure.csproj" />
+  </Folder>
+</Solution>
