@@ -1,7 +1,7 @@
 # net-efcore — Demonstração avançada de EF Core 10
 
 Projeto-vitrine que exercita, de ponta a ponta, os principais recursos do
-**Entity Framework Core 10** sobre **.NET 10 + SQLite**, com um front-end **React
+**Entity Framework Core 10** sobre **.NET 10 + SQL Server**, com um front-end **React
 (Vite + TypeScript)** que, para cada técnica, mostra **o SQL realmente enviado ao
 banco**, os parâmetros e o tempo de execução.
 
@@ -12,7 +12,17 @@ banco**, os parâmetros e o tempo de execução.
 
 ## 🚀 Como executar
 
-Pré-requisitos: **.NET SDK 10** e **Node 20+**.
+Pré-requisitos: **.NET SDK 10**, **Node 20+** e um **SQL Server**.
+
+No Windows não é preciso instalar nada: a connection string padrão aponta para o
+**LocalDB** (`(localdb)\MSSQLLocalDB`), que já vem com o Visual Studio / SQL Server
+Express. Em outros sistemas, suba um container e ajuste
+`ConnectionStrings:Default`:
+
+```bash
+docker run -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=Sua_Senha_F0rte" \
+  -p 1433:1433 -d mcr.microsoft.com/mssql/server:2022-latest
+```
 
 ### 1. API (.NET)
 
@@ -20,8 +30,8 @@ Pré-requisitos: **.NET SDK 10** e **Node 20+**.
 dotnet run --project src/EfCoreDemo.Api
 ```
 
-Na primeira execução a API aplica as *migrations* e popula o banco
-(`efcoredemo.db`) automaticamente. Suba por padrão em `http://localhost:5222`
+Na primeira execução a API cria o banco `EfCoreDemo`, aplica as *migrations* e o
+popula automaticamente. Sobe por padrão em `http://localhost:5222`
 (veja `src/EfCoreDemo.Api/Properties/launchSettings.json`).
 
 - Catálogo de demos: `GET http://localhost:5222/api/demos`
@@ -78,7 +88,7 @@ Toda chamada devolve o mesmo formato, o que permite ao front mostrar o SQL:
 |---|---|
 | `Customer` | PK **UUID v7**, **Complex Type** `Address`, 1:1, 1:N, auditoria, soft delete, concorrência |
 | `CustomerProfile` | lado dependente do **1:1**, **coleção primitiva** (`Interests`) em JSON |
-| `Category` | PK `int` (IDENTITY), **auto-relacionamento** (árvore pai/filhos) |
+| `Category` | PK `int` gerada no cliente pelo **Hi/Lo** (`UseHiLo`), **auto-relacionamento** (árvore pai/filhos) |
 | `Book` (abstract) | **Herança TPH**, **Complex Type em JSON** (`Metadata`), coleção primitiva (`Tags`), N:1 |
 | `PhysicalBook` / `EBook` | subtipos TPH; `PhysicalBook` usa **Owned Type** (`Dimensions`) |
 | `Author` ↔ `Book` | **N:N com payload** via entidade de junção `BookAuthor` (PK composta, enum `Role`) |
@@ -111,6 +121,9 @@ Toda chamada devolve o mesmo formato, o que permite ao front mostrar o SQL:
 - `transaction` (BeginTransaction + rollback)
 - `concurrency` (token de concorrência → `DbUpdateConcurrencyException`)
 
+**Geração de chaves** — `/api/keys/*`
+- `hilo/insert` (`UseHiLo()`: ids atribuídos no `Add()`, INSERT sem `OUTPUT`, e os "buracos" após rollback)
+
 **Auditoria** — `/api/audit/logs` (trilha gerada pelo interceptor)
 
 ### Interceptors implementados
@@ -122,20 +135,50 @@ Toda chamada devolve o mesmo formato, o que permite ao front mostrar o SQL:
 
 ---
 
-## ⚠️ Observações sobre o SQLite
+## 🔢 Hi/Lo: gerando o id no cliente
 
-O SQLite é ótimo para uma demo autocontida, mas tem limites que o projeto contorna
-de forma didática:
+`Category.Id` é gerado pela **aplicação**, não pelo banco:
 
-- **Sem `rowversion` nativo** → a concorrência otimista usa um token `Guid`
-  marcado com `IsConcurrencyToken()` e regenerado pelo interceptor a cada save.
-- **`Guid` é gravado como TEXT em maiúsculas** → ao montar SQL cru com Guids,
-  interpole o `Guid` diretamente (não `.ToString()`) para o provider serializar
-  igual à coluna.
-- **`decimal`** é armazenado como TEXT; `HasPrecision` é informativo.
-- **Complex Types não são suportados em hierarquias TPT** → por isso `Payment`
-  usa `decimal Amount` simples, enquanto `Money` (Complex Type) aparece em
-  `Book`, `Order` e `OrderItem`.
+```csharp
+builder.Property(c => c.Id).UseHiLo("CategoryHiLoSequence");
+```
+
+Em vez de um round-trip por insert (IDENTITY), o EF reserva um **bloco** de ids com
+um único `SELECT NEXT VALUE FOR` sobre uma `SEQUENCE` (criada pela migration com
+`incrementBy: 10`) e distribui o `lo` em memória:
+
+```
+id = (hi - 1) * blockSize + lo        lo ∈ [1, blockSize]
+```
+
+Só o `hi` precisa ser único globalmente, e é ele que vem do banco. Efeitos
+observáveis em `/api/keys/hilo/insert`:
+
+- a entidade tem id utilizável **antes** do `SaveChanges` (é atribuído no `Add()`);
+- o INSERT não precisa de `OUTPUT`/`SCOPE_IDENTITY()` para ler o id de volta;
+- N inserts **não** geram N idas à sequence — o SQL capturado mostra o
+  `NEXT VALUE FOR` aparecendo só quando o bloco vira;
+- um grafo inteiro pode ir em um round-trip, pois as FKs já são conhecidas.
+
+**O preço:** a reserva do bloco é independente da transação de negócio — senão um
+rollback devolveria o `hi` e dois processos reusariam o bloco. Logo, um rollback
+(ou um restart da aplicação) **queima os ids restantes**: a sequência tem buracos.
+Isso é esperado, e é o trade-off do Hi/Lo. O endpoint de demo faz rollback de
+propósito para você ver os buracos.
+
+> O `UseHiLo()` é uma extensão **específica de provider**. Existe no SQL Server e no
+> Npgsql (PostgreSQL), ambos apoiados em `SEQUENCE`. **Não existe no SQLite**, que
+> não tem sequences — lá o Hi/Lo precisaria ser implementado à mão.
+
+---
+
+## ⚠️ Limitações que sobram (e não são do banco)
+
+- **Complex Types não funcionam em hierarquias TPT.** Isso é uma limitação do
+  **EF Core**, não do provider: as colunas até são criadas e o INSERT passa, mas a
+  *consulta* estoura em `GenerateComplexPropertyShaperExpression`. Por isso
+  `Payment` usa `decimal Amount` + `string Currency` simples, enquanto `Money`
+  (Complex Type) aparece em `Book`, `Order` e `OrderItem`. Verificado no EF Core 10.
 
 ---
 
@@ -153,4 +196,12 @@ dotnet ef database update \
   --startup-project src/EfCoreDemo.Api
 ```
 
-Para recriar o banco do zero, apague `efcoredemo.db*` e rode a API novamente.
+Para recriar o banco do zero:
+
+```bash
+dotnet ef database drop --force \
+  --project src/EfCoreDemo.Infrastructure \
+  --startup-project src/EfCoreDemo.Api
+```
+
+Em seguida rode a API novamente — ela recria, migra e popula.

@@ -18,6 +18,7 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
             .HasValueGenerator<UuidV7ValueGenerator>()
             .ValueGeneratedOnAdd();
 
+        // decimal simples: complex type em TPT quebra na consulta (limitação do EF Core).
         builder.Property(p => p.Amount).HasPrecision(18, 2);
         builder.Property(p => p.Currency).HasMaxLength(3);
 

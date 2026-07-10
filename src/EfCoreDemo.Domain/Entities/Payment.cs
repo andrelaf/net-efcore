@@ -6,8 +6,14 @@ namespace EfCoreDemo.Domain.Entities;
 /// Pagamento — base de uma segunda hierarquia de herança, desta vez mapeada como
 /// <b>TPT</b> (Table-per-Type): cada subtipo ganha sua própria tabela ligada à
 /// tabela base por FK. Contraste com a hierarquia TPH de <see cref="Book"/>.
-/// Obs.: aqui o valor é um <c>decimal</c> simples (e não o Complex Type Money)
-/// porque o EF Core ainda não suporta complex types em hierarquias TPT.
+///
+/// <para>
+/// Obs.: aqui o valor é um <c>decimal</c> simples, e não o Complex Type
+/// <c>Money</c>. Isso é uma limitação do <b>EF Core</b> (não do banco): as colunas
+/// são criadas e o INSERT funciona, mas a <i>consulta</i> falha ao montar o shaper
+/// de um complex property em hierarquia TPT
+/// (<c>GenerateComplexPropertyShaperExpression</c>). Verificado no EF Core 10.
+/// </para>
 /// </summary>
 public abstract class Payment : GuidEntity
 {

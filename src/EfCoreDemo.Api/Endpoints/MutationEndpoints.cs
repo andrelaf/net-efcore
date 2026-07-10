@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EfCoreDemo.Api.Endpoints;
 
-public record ConcurrencyResult(bool ConflitoDetectado, string TokenOriginal, string Mensagem);
+public record ConcurrencyResult(bool ConflitoDetectado, string RowVersionOriginal, string Mensagem);
 
 public static class MutationEndpoints
 {
@@ -62,30 +62,29 @@ public static class MutationEndpoints
                 }));
 
         g.MapPost("/concurrency", (AppDbContext db, SqlCaptureSink sink) =>
-            Demo.Run(sink, "Conflito de concorrência otimista", "ConcurrencyToken / DbUpdateConcurrencyException",
-                "Carregamos um pedido e, antes de salvar, simulamos OUTRO usuário alterando o token diretamente no banco. O UPDATE do EF usa o token original no WHERE, casa 0 linhas e lança DbUpdateConcurrencyException.",
+            Demo.Run(sink, "Conflito de concorrência otimista", "rowversion / DbUpdateConcurrencyException",
+                "Carregamos um pedido e, antes de salvar, simulamos OUTRO usuário dando um UPDATE direto na linha — o SQL Server incrementa o rowversion sozinho. O UPDATE do EF leva o rowversion ORIGINAL no WHERE, casa 0 linhas e lança DbUpdateConcurrencyException.",
                 async () =>
                 {
                     var order = await db.Orders.FirstAsync();
-                    var tokenOriginal = order.ConcurrencyToken;
+                    var versaoOriginal = Convert.ToBase64String(order.RowVersion);
                     order.Status = order.Status == OrderStatus.Pending ? OrderStatus.Paid : OrderStatus.Pending;
 
-                    // Outro usuário alterou a linha (muda o token) entre o load e o save.
-                    // Importante: interpolar os Guid diretamente para o provider serializá-los
-                    // do mesmo modo que a coluna (o SQLite guarda Guid como TEXT em maiúsculas).
+                    // Outro usuário tocou a linha entre o load e o save. Qualquer UPDATE
+                    // basta: o banco reescreve o rowversion por conta própria.
                     await db.Database.ExecuteSqlInterpolatedAsync(
-                        $"UPDATE Orders SET ConcurrencyToken = {Guid.NewGuid()} WHERE Id = {order.Id}");
+                        $"UPDATE Orders SET UpdatedAtUtc = SYSUTCDATETIME() WHERE Id = {order.Id}");
 
                     try
                     {
                         await db.SaveChangesAsync();
-                        return new ConcurrencyResult(false, tokenOriginal.ToString(), "Salvou sem conflito (inesperado).");
+                        return new ConcurrencyResult(false, versaoOriginal, "Salvou sem conflito (inesperado).");
                     }
                     catch (DbUpdateConcurrencyException)
                     {
                         return new ConcurrencyResult(
                             true,
-                            tokenOriginal.ToString(),
+                            versaoOriginal,
                             "DbUpdateConcurrencyException capturada: a linha foi modificada por outro processo. Em produção: recarregar, mesclar e tentar de novo.");
                     }
                 }));

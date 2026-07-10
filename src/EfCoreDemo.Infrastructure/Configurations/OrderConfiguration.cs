@@ -21,7 +21,7 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
         // Enum persistido como texto.
         builder.Property(o => o.Status).HasConversion<string>().HasMaxLength(20);
 
-        builder.Property(o => o.ConcurrencyToken).IsConcurrencyToken();
+        builder.Property(o => o.RowVersion).IsRowVersion();
 
         // Complex Type: total do pedido.
         builder.ComplexProperty(o => o.Total, p =>

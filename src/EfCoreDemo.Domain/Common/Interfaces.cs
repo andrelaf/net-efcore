@@ -23,9 +23,9 @@ public interface ISoftDeletable
 }
 
 /// <summary>
-/// Entidade com controle de concorrência otimista. Como o SQLite não possui
-/// um tipo <c>rowversion</c> nativo, usamos um token Guid regenerado a cada
-/// SaveChanges pelo interceptor e marcado com <c>IsConcurrencyToken()</c>.
+/// Entidade com controle de concorrência otimista, apoiada no tipo
+/// <c>rowversion</c> do SQL Server: o próprio banco incrementa a coluna a cada
+/// UPDATE, e o EF a inclui no <c>WHERE</c>. Nada de token mantido à mão.
 ///
 /// <para>
 /// <b>Quando usar concorrência otimista:</b> quando vários usuários/processos
@@ -46,5 +46,6 @@ public interface ISoftDeletable
 /// </summary>
 public interface IConcurrencyAware
 {
-    Guid ConcurrencyToken { get; set; }
+    /// <summary>Coluna <c>rowversion</c>: gerada e mantida pelo banco.</summary>
+    byte[] RowVersion { get; set; }
 }

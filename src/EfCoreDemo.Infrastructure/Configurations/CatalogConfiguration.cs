@@ -10,7 +10,14 @@ public class CategoryConfiguration : IEntityTypeConfiguration<Category>
     public void Configure(EntityTypeBuilder<Category> builder)
     {
         builder.ToTable("Categories");
-        builder.HasKey(c => c.Id); // PK int IDENTITY (gerada pelo banco)
+        builder.HasKey(c => c.Id);
+
+        // PK int gerada no CLIENTE pelo algoritmo Hi/Lo, apoiado em uma SEQUENCE
+        // do SQL Server. Em vez de IDENTITY (um round-trip por insert para ler o
+        // id gerado), o EF reserva um bloco de ids com um único
+        // 'SELECT NEXT VALUE FOR' e distribui o 'lo' em memória. Efeito: o Id já
+        // existe no Add(), antes do SaveChanges, e o INSERT o envia explicitamente.
+        builder.Property(c => c.Id).UseHiLo("CategoryHiLoSequence");
 
         builder.Property(c => c.Name).HasMaxLength(120).IsRequired();
         builder.Property(c => c.Slug).HasMaxLength(140).IsRequired();

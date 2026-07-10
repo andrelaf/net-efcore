@@ -12,7 +12,7 @@ public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<AppDbConte
     public AppDbContext CreateDbContext(string[] args)
     {
         var options = new DbContextOptionsBuilder<AppDbContext>()
-            .UseSqlite("Data Source=efcoredemo.db")
+            .UseSqlServer("Server=(localdb)\\MSSQLLocalDB;Database=EfCoreDemo;Trusted_Connection=True;")
             .Options;
 
         return new AppDbContext(options);

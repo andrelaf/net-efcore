@@ -63,7 +63,9 @@ public static class AuditAndMetaEndpoints
         new("Modificações", "Update em lote", "ExecuteUpdateAsync", "POST", "/api/mutations/batch-update"),
         new("Modificações", "Delete em lote", "ExecuteDeleteAsync", "POST", "/api/mutations/batch-delete"),
         new("Modificações", "Transação (rollback)", "BeginTransaction", "POST", "/api/mutations/transaction"),
-        new("Modificações", "Concorrência otimista", "ConcurrencyToken", "POST", "/api/mutations/concurrency"),
+        new("Modificações", "Concorrência otimista", "rowversion", "POST", "/api/mutations/concurrency"),
+
+        new("Geração de Chaves", "Hi/Lo (id gerado no cliente)", "UseHiLo", "POST", "/api/keys/hilo/insert"),
 
         new("Auditoria", "Trilha de auditoria", "SaveChangesInterceptor", "GET", "/api/audit/logs"),
     ];

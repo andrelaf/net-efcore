@@ -15,7 +15,7 @@ namespace EfCoreDemo.Infrastructure.Interceptors;
 /// <list type="bullet">
 /// <item>Preenche campos de auditoria (<see cref="IAuditable"/>);</item>
 /// <item>Converte DELETE físico em soft delete (<see cref="ISoftDeletable"/>);</item>
-/// <item>Regenera o token de concorrência (<see cref="IConcurrencyAware"/>);</item>
+/// <item>Não toca em <see cref="IConcurrencyAware"/>: o <c>rowversion</c> é do banco;</item>
 /// <item>Gera registros de <see cref="AuditLog"/> com o diff das alterações.</item>
 /// </list>
 /// </summary>
@@ -68,12 +68,8 @@ public sealed class AuditableEntityInterceptor(ICurrentUserService currentUser, 
                 }
             }
 
-            // 3) Token de concorrência otimista (substitui rowversion no SQLite).
-            if (entry.Entity is IConcurrencyAware concurrency &&
-                entry.State is EntityState.Added or EntityState.Modified)
-            {
-                concurrency.ConcurrencyToken = Guid.NewGuid();
-            }
+            // 3) Concorrência otimista: nada a fazer. A coluna 'rowversion' do
+            //    SQL Server é incrementada pelo próprio banco a cada UPDATE.
 
             // 4) Trilha de auditoria (somente entidades auditáveis).
             if (entry.Entity is IAuditable && entry.State is EntityState.Added or EntityState.Modified or EntityState.Deleted)

@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
 var connectionString = builder.Configuration.GetConnectionString("Default")
-    ?? "Data Source=efcoredemo.db";
+    ?? "Server=(localdb)\\MSSQLLocalDB;Database=EfCoreDemo;Trusted_Connection=True;TrustServerCertificate=True";
 
 builder.Services.AddInfrastructure(connectionString);
 
@@ -44,6 +44,7 @@ app.MapRelationshipEndpoints();
 app.MapLoadingEndpoints();
 app.MapQueryEndpoints();
 app.MapMutationEndpoints();
+app.MapKeyGenerationEndpoints();
 app.MapAuditEndpoints();
 app.MapMetaEndpoints();
 

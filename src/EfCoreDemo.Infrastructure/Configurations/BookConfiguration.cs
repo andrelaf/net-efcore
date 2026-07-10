@@ -19,7 +19,7 @@ public class BookConfiguration : IEntityTypeConfiguration<Book>
         builder.Property(b => b.Isbn).HasMaxLength(20).IsRequired();
         builder.HasIndex(b => b.Isbn).IsUnique();
 
-        builder.Property(b => b.ConcurrencyToken).IsConcurrencyToken();
+        builder.Property(b => b.RowVersion).IsRowVersion();
 
         // HERANÇA TPH: PhysicalBook e EBook na mesma tabela, separados pela
         // coluna discriminadora "BookType".

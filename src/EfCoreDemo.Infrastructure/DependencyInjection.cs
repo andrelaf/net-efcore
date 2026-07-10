@@ -24,7 +24,7 @@ public static class DependencyInjection
         services.AddDbContext<AppDbContext>((sp, options) =>
         {
             options
-                .UseSqlite(connectionString)
+                .UseSqlServer(connectionString)
                 // Lazy Loading via proxies dinâmicos (navegações virtual).
                 .UseLazyLoadingProxies()
                 // Interceptors resolvidos do contêiner (escopo por requisição).

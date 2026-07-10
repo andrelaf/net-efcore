@@ -11,17 +11,21 @@ namespace EfCoreDemo.Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.CreateSequence(
+                name: "CategoryHiLoSequence",
+                incrementBy: 10);
+
             migrationBuilder.CreateTable(
                 name: "AuditLogs",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    EntityName = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
-                    EntityId = table.Column<string>(type: "TEXT", maxLength: 60, nullable: false),
-                    Action = table.Column<string>(type: "TEXT", maxLength: 10, nullable: false),
-                    ChangesJson = table.Column<string>(type: "TEXT", nullable: false),
-                    User = table.Column<string>(type: "TEXT", maxLength: 100, nullable: true),
-                    TimestampUtc = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    EntityName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    EntityId = table.Column<string>(type: "nvarchar(60)", maxLength: 60, nullable: false),
+                    Action = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false),
+                    ChangesJson = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    User = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    TimestampUtc = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -32,10 +36,10 @@ namespace EfCoreDemo.Infrastructure.Migrations
                 name: "Authors",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Name = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
-                    Bio = table.Column<string>(type: "TEXT", maxLength: 2000, nullable: true),
-                    Country = table.Column<string>(type: "TEXT", maxLength: 60, nullable: false)
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    Bio = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: true),
+                    Country = table.Column<string>(type: "nvarchar(60)", maxLength: 60, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -46,11 +50,10 @@ namespace EfCoreDemo.Infrastructure.Migrations
                 name: "Categories",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    Name = table.Column<string>(type: "TEXT", maxLength: 120, nullable: false),
-                    Slug = table.Column<string>(type: "TEXT", maxLength: 140, nullable: false),
-                    ParentCategoryId = table.Column<int>(type: "INTEGER", nullable: true)
+                    Id = table.Column<int>(type: "int", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(120)", maxLength: 120, nullable: false),
+                    Slug = table.Column<string>(type: "nvarchar(140)", maxLength: 140, nullable: false),
+                    ParentCategoryId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -67,23 +70,23 @@ namespace EfCoreDemo.Infrastructure.Migrations
                 name: "Customers",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    FullName = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
-                    Email = table.Column<string>(type: "TEXT", maxLength: 256, nullable: false),
-                    LoyaltyPoints = table.Column<int>(type: "INTEGER", nullable: false),
-                    Address_City = table.Column<string>(type: "TEXT", maxLength: 120, nullable: false),
-                    Address_Country = table.Column<string>(type: "TEXT", maxLength: 60, nullable: false),
-                    Address_Number = table.Column<string>(type: "TEXT", maxLength: 20, nullable: false),
-                    Address_State = table.Column<string>(type: "TEXT", maxLength: 2, nullable: false),
-                    Address_Street = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
-                    Address_ZipCode = table.Column<string>(type: "TEXT", maxLength: 9, nullable: false),
-                    CreatedAtUtc = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    UpdatedAtUtc = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    CreatedBy = table.Column<string>(type: "TEXT", nullable: true),
-                    UpdatedBy = table.Column<string>(type: "TEXT", nullable: true),
-                    IsDeleted = table.Column<bool>(type: "INTEGER", nullable: false),
-                    DeletedAtUtc = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    ConcurrencyToken = table.Column<Guid>(type: "TEXT", nullable: false)
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    FullName = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    LoyaltyPoints = table.Column<int>(type: "int", nullable: false),
+                    Address_City = table.Column<string>(type: "nvarchar(120)", maxLength: 120, nullable: false),
+                    Address_Country = table.Column<string>(type: "nvarchar(60)", maxLength: 60, nullable: false),
+                    Address_Number = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    Address_State = table.Column<string>(type: "nvarchar(2)", maxLength: 2, nullable: false),
+                    Address_Street = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    Address_ZipCode = table.Column<string>(type: "nvarchar(9)", maxLength: 9, nullable: false),
+                    CreatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    UpdatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
+                    DeletedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    RowVersion = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -94,30 +97,30 @@ namespace EfCoreDemo.Infrastructure.Migrations
                 name: "Books",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Title = table.Column<string>(type: "TEXT", maxLength: 300, nullable: false),
-                    Isbn = table.Column<string>(type: "TEXT", maxLength: 20, nullable: false),
-                    Tags = table.Column<string>(type: "TEXT", nullable: false),
-                    CategoryId = table.Column<int>(type: "INTEGER", nullable: false),
-                    BookType = table.Column<string>(type: "TEXT", maxLength: 8, nullable: false),
-                    Price_Amount = table.Column<decimal>(type: "TEXT", precision: 18, scale: 2, nullable: false),
-                    Price_Currency = table.Column<string>(type: "TEXT", maxLength: 3, nullable: false),
-                    Format = table.Column<string>(type: "TEXT", maxLength: 10, nullable: true),
-                    FileSizeMb = table.Column<double>(type: "REAL", nullable: true),
-                    DownloadUrl = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
-                    StockQuantity = table.Column<int>(type: "INTEGER", nullable: true),
-                    WeightGrams = table.Column<double>(type: "REAL", nullable: true),
-                    Dim_Height = table.Column<double>(type: "REAL", nullable: true),
-                    Dim_Width = table.Column<double>(type: "REAL", nullable: true),
-                    Dim_Depth = table.Column<double>(type: "REAL", nullable: true),
-                    CreatedAtUtc = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    UpdatedAtUtc = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    CreatedBy = table.Column<string>(type: "TEXT", nullable: true),
-                    UpdatedBy = table.Column<string>(type: "TEXT", nullable: true),
-                    IsDeleted = table.Column<bool>(type: "INTEGER", nullable: false),
-                    DeletedAtUtc = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    ConcurrencyToken = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Metadata = table.Column<string>(type: "TEXT", nullable: false)
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Title = table.Column<string>(type: "nvarchar(300)", maxLength: 300, nullable: false),
+                    Isbn = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    Tags = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CategoryId = table.Column<int>(type: "int", nullable: false),
+                    BookType = table.Column<string>(type: "nvarchar(8)", maxLength: 8, nullable: false),
+                    Price_Amount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    Price_Currency = table.Column<string>(type: "nvarchar(3)", maxLength: 3, nullable: false),
+                    Format = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: true),
+                    FileSizeMb = table.Column<double>(type: "float", nullable: true),
+                    DownloadUrl = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    StockQuantity = table.Column<int>(type: "int", nullable: true),
+                    WeightGrams = table.Column<double>(type: "float", nullable: true),
+                    Dim_Height = table.Column<double>(type: "float", nullable: true),
+                    Dim_Width = table.Column<double>(type: "float", nullable: true),
+                    Dim_Depth = table.Column<double>(type: "float", nullable: true),
+                    RowVersion = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: false),
+                    CreatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    UpdatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
+                    DeletedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    Metadata = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -134,12 +137,12 @@ namespace EfCoreDemo.Infrastructure.Migrations
                 name: "CustomerProfiles",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    CustomerId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Bio = table.Column<string>(type: "TEXT", maxLength: 1000, nullable: true),
-                    Birthday = table.Column<DateOnly>(type: "TEXT", nullable: true),
-                    PreferredLanguage = table.Column<string>(type: "TEXT", maxLength: 10, nullable: false),
-                    Interests = table.Column<string>(type: "TEXT", nullable: false)
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    CustomerId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Bio = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
+                    Birthday = table.Column<DateOnly>(type: "date", nullable: true),
+                    PreferredLanguage = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false),
+                    Interests = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -156,26 +159,26 @@ namespace EfCoreDemo.Infrastructure.Migrations
                 name: "Orders",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    OrderNumber = table.Column<string>(type: "TEXT", maxLength: 30, nullable: false),
-                    PlacedAtUtc = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    Status = table.Column<string>(type: "TEXT", maxLength: 20, nullable: false),
-                    Ship_Street = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
-                    Ship_Number = table.Column<string>(type: "TEXT", maxLength: 20, nullable: false),
-                    Ship_City = table.Column<string>(type: "TEXT", maxLength: 120, nullable: false),
-                    Ship_State = table.Column<string>(type: "TEXT", maxLength: 2, nullable: false),
-                    Ship_ZipCode = table.Column<string>(type: "TEXT", maxLength: 9, nullable: false),
-                    Ship_Country = table.Column<string>(type: "TEXT", maxLength: 60, nullable: false),
-                    CustomerId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Total_Amount = table.Column<decimal>(type: "TEXT", precision: 18, scale: 2, nullable: false),
-                    Total_Currency = table.Column<string>(type: "TEXT", maxLength: 3, nullable: false),
-                    CreatedAtUtc = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    UpdatedAtUtc = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    CreatedBy = table.Column<string>(type: "TEXT", nullable: true),
-                    UpdatedBy = table.Column<string>(type: "TEXT", nullable: true),
-                    IsDeleted = table.Column<bool>(type: "INTEGER", nullable: false),
-                    DeletedAtUtc = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    ConcurrencyToken = table.Column<Guid>(type: "TEXT", nullable: false)
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    OrderNumber = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false),
+                    PlacedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Status = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    Ship_Street = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    Ship_Number = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    Ship_City = table.Column<string>(type: "nvarchar(120)", maxLength: 120, nullable: false),
+                    Ship_State = table.Column<string>(type: "nvarchar(2)", maxLength: 2, nullable: false),
+                    Ship_ZipCode = table.Column<string>(type: "nvarchar(9)", maxLength: 9, nullable: false),
+                    Ship_Country = table.Column<string>(type: "nvarchar(60)", maxLength: 60, nullable: false),
+                    CustomerId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Total_Amount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    Total_Currency = table.Column<string>(type: "nvarchar(3)", maxLength: 3, nullable: false),
+                    CreatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    UpdatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
+                    DeletedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    RowVersion = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -192,10 +195,10 @@ namespace EfCoreDemo.Infrastructure.Migrations
                 name: "BookAuthors",
                 columns: table => new
                 {
-                    BookId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    AuthorId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Role = table.Column<string>(type: "TEXT", maxLength: 20, nullable: false),
-                    Order = table.Column<int>(type: "INTEGER", nullable: false)
+                    BookId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    AuthorId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Role = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    Order = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -218,12 +221,12 @@ namespace EfCoreDemo.Infrastructure.Migrations
                 name: "OrderItems",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    OrderId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    BookId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Quantity = table.Column<int>(type: "INTEGER", nullable: false),
-                    UnitPrice_Amount = table.Column<decimal>(type: "TEXT", precision: 18, scale: 2, nullable: false),
-                    UnitPrice_Currency = table.Column<string>(type: "TEXT", maxLength: 3, nullable: false)
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    OrderId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    BookId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Quantity = table.Column<int>(type: "int", nullable: false),
+                    UnitPrice_Amount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    UnitPrice_Currency = table.Column<string>(type: "nvarchar(3)", maxLength: 3, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -246,11 +249,11 @@ namespace EfCoreDemo.Infrastructure.Migrations
                 name: "Payments",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    OrderId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Amount = table.Column<decimal>(type: "TEXT", precision: 18, scale: 2, nullable: false),
-                    Currency = table.Column<string>(type: "TEXT", maxLength: 3, nullable: false),
-                    PaidAtUtc = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    OrderId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Amount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    Currency = table.Column<string>(type: "nvarchar(3)", maxLength: 3, nullable: false),
+                    PaidAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -267,9 +270,9 @@ namespace EfCoreDemo.Infrastructure.Migrations
                 name: "BoletoPayments",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Barcode = table.Column<string>(type: "TEXT", maxLength: 60, nullable: false),
-                    DueDate = table.Column<DateOnly>(type: "TEXT", nullable: false)
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Barcode = table.Column<string>(type: "nvarchar(60)", maxLength: 60, nullable: false),
+                    DueDate = table.Column<DateOnly>(type: "date", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -286,10 +289,10 @@ namespace EfCoreDemo.Infrastructure.Migrations
                 name: "CreditCardPayments",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    CardLast4 = table.Column<string>(type: "TEXT", maxLength: 4, nullable: false),
-                    Brand = table.Column<string>(type: "TEXT", maxLength: 30, nullable: false),
-                    Installments = table.Column<int>(type: "INTEGER", nullable: false)
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    CardLast4 = table.Column<string>(type: "nvarchar(4)", maxLength: 4, nullable: false),
+                    Brand = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false),
+                    Installments = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -306,9 +309,9 @@ namespace EfCoreDemo.Infrastructure.Migrations
                 name: "PixPayments",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    PixKey = table.Column<string>(type: "TEXT", maxLength: 140, nullable: false),
-                    TransactionId = table.Column<string>(type: "TEXT", maxLength: 60, nullable: false)
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    PixKey = table.Column<string>(type: "nvarchar(140)", maxLength: 140, nullable: false),
+                    TransactionId = table.Column<string>(type: "nvarchar(60)", maxLength: 60, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -434,6 +437,9 @@ namespace EfCoreDemo.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "Customers");
+
+            migrationBuilder.DropSequence(
+                name: "CategoryHiLoSequence");
         }
     }
 }

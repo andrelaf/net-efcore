@@ -22,7 +22,7 @@ public class CustomerConfiguration : IEntityTypeConfiguration<Customer>
         builder.HasIndex(c => c.Email).IsUnique();
 
         // Token de concorrência otimista (regenerado pelo interceptor de auditoria).
-        builder.Property(c => c.ConcurrencyToken).IsConcurrencyToken();
+        builder.Property(c => c.RowVersion).IsRowVersion();
 
         // Complex Type: Address vira colunas Address_* na própria tabela.
         builder.ComplexProperty(c => c.Address, a =>

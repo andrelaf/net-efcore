@@ -24,5 +24,5 @@ public abstract class FullAuditedEntity : GuidEntity, IAuditable, ISoftDeletable
     public bool IsDeleted { get; set; }
     public DateTime? DeletedAtUtc { get; set; }
 
-    public Guid ConcurrencyToken { get; set; }
+    public byte[] RowVersion { get; set; } = [];
 }

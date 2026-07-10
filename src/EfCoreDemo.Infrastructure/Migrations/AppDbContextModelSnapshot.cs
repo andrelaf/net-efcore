@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using EfCoreDemo.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -16,38 +17,45 @@ namespace EfCoreDemo.Infrastructure.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "10.0.9");
+            modelBuilder
+                .HasAnnotation("ProductVersion", "10.0.9")
+                .HasAnnotation("Relational:MaxIdentifierLength", 128);
+
+            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.HasSequence("CategoryHiLoSequence")
+                .IncrementsBy(10);
 
             modelBuilder.Entity("EfCoreDemo.Domain.Entities.AuditLog", b =>
                 {
                     b.Property<Guid>("Id")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Action")
                         .IsRequired()
                         .HasMaxLength(10)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(10)");
 
                     b.Property<string>("ChangesJson")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("EntityId")
                         .IsRequired()
                         .HasMaxLength(60)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(60)");
 
                     b.Property<string>("EntityName")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<DateTime>("TimestampUtc")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("User")
                         .HasMaxLength(100)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(100)");
 
                     b.HasKey("Id");
 
@@ -60,21 +68,21 @@ namespace EfCoreDemo.Infrastructure.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Bio")
                         .HasMaxLength(2000)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(2000)");
 
                     b.Property<string>("Country")
                         .IsRequired()
                         .HasMaxLength(60)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(60)");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(200)");
 
                     b.HasKey("Id");
 
@@ -85,51 +93,53 @@ namespace EfCoreDemo.Infrastructure.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("BookType")
                         .IsRequired()
                         .HasMaxLength(8)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(8)");
 
                     b.Property<int>("CategoryId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<Guid>("ConcurrencyToken")
-                        .IsConcurrencyToken()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("CreatedAtUtc")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("DeletedAtUtc")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime2");
 
                     b.Property<bool>("IsDeleted")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("bit");
 
                     b.Property<string>("Isbn")
                         .IsRequired()
                         .HasMaxLength(20)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
 
                     b.PrimitiveCollection<string>("Tags")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(300)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(300)");
 
                     b.Property<DateTime?>("UpdatedAtUtc")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("UpdatedBy")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.ComplexProperty(typeof(Dictionary<string, object>), "Metadata", "EfCoreDemo.Domain.Entities.Book.Metadata#BookMetadata", b1 =>
                         {
@@ -147,7 +157,7 @@ namespace EfCoreDemo.Infrastructure.Migrations
 
                             b1
                                 .ToJson("Metadata")
-                                .HasColumnType("TEXT");
+                                .HasColumnType("nvarchar(max)");
                         });
 
                     b.ComplexProperty(typeof(Dictionary<string, object>), "Price", "EfCoreDemo.Domain.Entities.Book.Price#Money", b1 =>
@@ -156,13 +166,13 @@ namespace EfCoreDemo.Infrastructure.Migrations
 
                             b1.Property<decimal>("Amount")
                                 .HasPrecision(18, 2)
-                                .HasColumnType("TEXT")
+                                .HasColumnType("decimal(18,2)")
                                 .HasColumnName("Price_Amount");
 
                             b1.Property<string>("Currency")
                                 .IsRequired()
                                 .HasMaxLength(3)
-                                .HasColumnType("TEXT")
+                                .HasColumnType("nvarchar(3)")
                                 .HasColumnName("Price_Currency");
                         });
 
@@ -183,18 +193,18 @@ namespace EfCoreDemo.Infrastructure.Migrations
             modelBuilder.Entity("EfCoreDemo.Domain.Entities.BookAuthor", b =>
                 {
                     b.Property<Guid>("BookId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("AuthorId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("Order")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<string>("Role")
                         .IsRequired()
                         .HasMaxLength(20)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(20)");
 
                     b.HasKey("BookId", "AuthorId");
 
@@ -207,20 +217,22 @@ namespace EfCoreDemo.Infrastructure.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseHiLo(b.Property<int>("Id"), "CategoryHiLoSequence");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(120)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(120)");
 
                     b.Property<int?>("ParentCategoryId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<string>("Slug")
                         .IsRequired()
                         .HasMaxLength(140)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(140)");
 
                     b.HasKey("Id");
 
@@ -236,42 +248,44 @@ namespace EfCoreDemo.Infrastructure.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
-
-                    b.Property<Guid>("ConcurrencyToken")
-                        .IsConcurrencyToken()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedAtUtc")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("DeletedAtUtc")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(256)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(256)");
 
                     b.Property<string>("FullName")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<bool>("IsDeleted")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("bit");
 
                     b.Property<int>("LoyaltyPoints")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
 
                     b.Property<DateTime?>("UpdatedAtUtc")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("UpdatedBy")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.ComplexProperty(typeof(Dictionary<string, object>), "Address", "EfCoreDemo.Domain.Entities.Customer.Address#Address", b1 =>
                         {
@@ -280,37 +294,37 @@ namespace EfCoreDemo.Infrastructure.Migrations
                             b1.Property<string>("City")
                                 .IsRequired()
                                 .HasMaxLength(120)
-                                .HasColumnType("TEXT")
+                                .HasColumnType("nvarchar(120)")
                                 .HasColumnName("Address_City");
 
                             b1.Property<string>("Country")
                                 .IsRequired()
                                 .HasMaxLength(60)
-                                .HasColumnType("TEXT")
+                                .HasColumnType("nvarchar(60)")
                                 .HasColumnName("Address_Country");
 
                             b1.Property<string>("Number")
                                 .IsRequired()
                                 .HasMaxLength(20)
-                                .HasColumnType("TEXT")
+                                .HasColumnType("nvarchar(20)")
                                 .HasColumnName("Address_Number");
 
                             b1.Property<string>("State")
                                 .IsRequired()
                                 .HasMaxLength(2)
-                                .HasColumnType("TEXT")
+                                .HasColumnType("nvarchar(2)")
                                 .HasColumnName("Address_State");
 
                             b1.Property<string>("Street")
                                 .IsRequired()
                                 .HasMaxLength(200)
-                                .HasColumnType("TEXT")
+                                .HasColumnType("nvarchar(200)")
                                 .HasColumnName("Address_Street");
 
                             b1.Property<string>("ZipCode")
                                 .IsRequired()
                                 .HasMaxLength(9)
-                                .HasColumnType("TEXT")
+                                .HasColumnType("nvarchar(9)")
                                 .HasColumnName("Address_ZipCode");
                         });
 
@@ -326,26 +340,26 @@ namespace EfCoreDemo.Infrastructure.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Bio")
                         .HasMaxLength(1000)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<DateOnly?>("Birthday")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("date");
 
                     b.Property<Guid>("CustomerId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uniqueidentifier");
 
                     b.PrimitiveCollection<string>("Interests")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PreferredLanguage")
                         .IsRequired()
                         .HasMaxLength(10)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(10)");
 
                     b.HasKey("Id");
 
@@ -359,45 +373,47 @@ namespace EfCoreDemo.Infrastructure.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
-
-                    b.Property<Guid>("ConcurrencyToken")
-                        .IsConcurrencyToken()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedAtUtc")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("CreatedBy")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("CustomerId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime?>("DeletedAtUtc")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime2");
 
                     b.Property<bool>("IsDeleted")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("bit");
 
                     b.Property<string>("OrderNumber")
                         .IsRequired()
                         .HasMaxLength(30)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(30)");
 
                     b.Property<DateTime>("PlacedAtUtc")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime2");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
 
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(20)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<DateTime?>("UpdatedAtUtc")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("UpdatedBy")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.ComplexProperty(typeof(Dictionary<string, object>), "Total", "EfCoreDemo.Domain.Entities.Order.Total#Money", b1 =>
                         {
@@ -405,13 +421,13 @@ namespace EfCoreDemo.Infrastructure.Migrations
 
                             b1.Property<decimal>("Amount")
                                 .HasPrecision(18, 2)
-                                .HasColumnType("TEXT")
+                                .HasColumnType("decimal(18,2)")
                                 .HasColumnName("Total_Amount");
 
                             b1.Property<string>("Currency")
                                 .IsRequired()
                                 .HasMaxLength(3)
-                                .HasColumnType("TEXT")
+                                .HasColumnType("nvarchar(3)")
                                 .HasColumnName("Total_Currency");
                         });
 
@@ -429,16 +445,16 @@ namespace EfCoreDemo.Infrastructure.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("BookId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("OrderId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("Quantity")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.ComplexProperty(typeof(Dictionary<string, object>), "UnitPrice", "EfCoreDemo.Domain.Entities.OrderItem.UnitPrice#Money", b1 =>
                         {
@@ -446,13 +462,13 @@ namespace EfCoreDemo.Infrastructure.Migrations
 
                             b1.Property<decimal>("Amount")
                                 .HasPrecision(18, 2)
-                                .HasColumnType("TEXT")
+                                .HasColumnType("decimal(18,2)")
                                 .HasColumnName("UnitPrice_Amount");
 
                             b1.Property<string>("Currency")
                                 .IsRequired()
                                 .HasMaxLength(3)
-                                .HasColumnType("TEXT")
+                                .HasColumnType("nvarchar(3)")
                                 .HasColumnName("UnitPrice_Currency");
                         });
 
@@ -469,22 +485,22 @@ namespace EfCoreDemo.Infrastructure.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<decimal>("Amount")
                         .HasPrecision(18, 2)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Currency")
                         .IsRequired()
                         .HasMaxLength(3)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(3)");
 
                     b.Property<Guid>("OrderId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("PaidAtUtc")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
@@ -503,15 +519,15 @@ namespace EfCoreDemo.Infrastructure.Migrations
                     b.Property<string>("DownloadUrl")
                         .IsRequired()
                         .HasMaxLength(500)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<double>("FileSizeMb")
-                        .HasColumnType("REAL");
+                        .HasColumnType("float");
 
                     b.Property<string>("Format")
                         .IsRequired()
                         .HasMaxLength(10)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(10)");
 
                     b.HasDiscriminator().HasValue("ebook");
                 });
@@ -521,10 +537,10 @@ namespace EfCoreDemo.Infrastructure.Migrations
                     b.HasBaseType("EfCoreDemo.Domain.Entities.Book");
 
                     b.Property<int>("StockQuantity")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<double>("WeightGrams")
-                        .HasColumnType("REAL");
+                        .HasColumnType("float");
 
                     b.HasDiscriminator().HasValue("physical");
                 });
@@ -536,10 +552,10 @@ namespace EfCoreDemo.Infrastructure.Migrations
                     b.Property<string>("Barcode")
                         .IsRequired()
                         .HasMaxLength(60)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(60)");
 
                     b.Property<DateOnly>("DueDate")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("date");
 
                     b.ToTable("BoletoPayments", (string)null);
                 });
@@ -551,15 +567,15 @@ namespace EfCoreDemo.Infrastructure.Migrations
                     b.Property<string>("Brand")
                         .IsRequired()
                         .HasMaxLength(30)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(30)");
 
                     b.Property<string>("CardLast4")
                         .IsRequired()
                         .HasMaxLength(4)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(4)");
 
                     b.Property<int>("Installments")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.ToTable("CreditCardPayments", (string)null);
                 });
@@ -571,12 +587,12 @@ namespace EfCoreDemo.Infrastructure.Migrations
                     b.Property<string>("PixKey")
                         .IsRequired()
                         .HasMaxLength(140)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(140)");
 
                     b.Property<string>("TransactionId")
                         .IsRequired()
                         .HasMaxLength(60)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(60)");
 
                     b.ToTable("PixPayments", (string)null);
                 });
@@ -643,42 +659,42 @@ namespace EfCoreDemo.Infrastructure.Migrations
                     b.OwnsOne("EfCoreDemo.Domain.ValueObjects.Address", "ShippingAddress", b1 =>
                         {
                             b1.Property<Guid>("OrderId")
-                                .HasColumnType("TEXT");
+                                .HasColumnType("uniqueidentifier");
 
                             b1.Property<string>("City")
                                 .IsRequired()
                                 .HasMaxLength(120)
-                                .HasColumnType("TEXT")
+                                .HasColumnType("nvarchar(120)")
                                 .HasColumnName("Ship_City");
 
                             b1.Property<string>("Country")
                                 .IsRequired()
                                 .HasMaxLength(60)
-                                .HasColumnType("TEXT")
+                                .HasColumnType("nvarchar(60)")
                                 .HasColumnName("Ship_Country");
 
                             b1.Property<string>("Number")
                                 .IsRequired()
                                 .HasMaxLength(20)
-                                .HasColumnType("TEXT")
+                                .HasColumnType("nvarchar(20)")
                                 .HasColumnName("Ship_Number");
 
                             b1.Property<string>("State")
                                 .IsRequired()
                                 .HasMaxLength(2)
-                                .HasColumnType("TEXT")
+                                .HasColumnType("nvarchar(2)")
                                 .HasColumnName("Ship_State");
 
                             b1.Property<string>("Street")
                                 .IsRequired()
                                 .HasMaxLength(200)
-                                .HasColumnType("TEXT")
+                                .HasColumnType("nvarchar(200)")
                                 .HasColumnName("Ship_Street");
 
                             b1.Property<string>("ZipCode")
                                 .IsRequired()
                                 .HasMaxLength(9)
-                                .HasColumnType("TEXT")
+                                .HasColumnType("nvarchar(9)")
                                 .HasColumnName("Ship_ZipCode");
 
                             b1.HasKey("OrderId");
@@ -730,19 +746,26 @@ namespace EfCoreDemo.Infrastructure.Migrations
                     b.OwnsOne("EfCoreDemo.Domain.ValueObjects.Dimensions", "Dimensions", b1 =>
                         {
                             b1.Property<Guid>("PhysicalBookId")
-                                .HasColumnType("TEXT");
+                                .HasColumnType("uniqueidentifier");
 
                             b1.Property<double>("DepthCm")
-                                .HasColumnType("REAL")
+                                .HasColumnType("float")
                                 .HasColumnName("Dim_Depth");
 
                             b1.Property<double>("HeightCm")
-                                .HasColumnType("REAL")
+                                .HasColumnType("float")
                                 .HasColumnName("Dim_Height");
 
                             b1.Property<double>("WidthCm")
-                                .HasColumnType("REAL")
+                                .HasColumnType("float")
                                 .HasColumnName("Dim_Width");
+
+                            b1.Property<byte[]>("_TableSharingConcurrencyTokenConvention_RowVersion")
+                                .IsConcurrencyToken()
+                                .IsRequired()
+                                .ValueGeneratedOnAddOrUpdate()
+                                .HasColumnType("rowversion")
+                                .HasColumnName("RowVersion");
 
                             b1.HasKey("PhysicalBookId");
 
