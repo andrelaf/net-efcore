@@ -14,9 +14,14 @@ public class CategoryConfiguration : IEntityTypeConfiguration<Category>
 
         // PK int gerada no CLIENTE pelo algoritmo Hi/Lo, apoiado em uma SEQUENCE
         // do SQL Server. Em vez de IDENTITY (um round-trip por insert para ler o
-        // id gerado), o EF reserva um bloco de ids com um único
-        // 'SELECT NEXT VALUE FOR' e distribui o 'lo' em memória. Efeito: o Id já
-        // existe no Add(), antes do SaveChanges, e o INSERT o envia explicitamente.
+        // id gerado), o EF reserva um bloco com um único 'SELECT NEXT VALUE FOR' e
+        // distribui os ids em memória. A sequence tem INCREMENT BY 10, então cada
+        // NEXT VALUE FOR já devolve o primeiro id do bloco (1, 11, 21...) e o bloco
+        // é [valor, valor + 9]. Efeito: o Id existe no Add(), antes do SaveChanges,
+        // e o INSERT o envia explicitamente.
+        //
+        // Só funciona com PK inteira: sequences não geram Guid (ver Author, que usa
+        // UUID v7 justamente por isso).
         builder.Property(c => c.Id).UseHiLo("CategoryHiLoSequence");
 
         builder.Property(c => c.Name).HasMaxLength(120).IsRequired();

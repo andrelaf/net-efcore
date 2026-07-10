@@ -144,15 +144,22 @@ builder.Property(c => c.Id).UseHiLo("CategoryHiLoSequence");
 ```
 
 Em vez de um round-trip por insert (IDENTITY), o EF reserva um **bloco** de ids com
-um único `SELECT NEXT VALUE FOR` sobre uma `SEQUENCE` (criada pela migration com
-`incrementBy: 10`) e distribui o `lo` em memória:
+um único `SELECT NEXT VALUE FOR` sobre uma `SEQUENCE` e distribui os ids em memória.
+
+O detalhe da implementação: a migration cria a sequence com
+`CreateSequence(name: "CategoryHiLoSequence", incrementBy: 10)`. Como o **passo da
+própria sequence é o tamanho do bloco**, cada `NEXT VALUE FOR` devolve diretamente o
+primeiro id do bloco — `1`, depois `11`, depois `21` — e o EF entrega:
 
 ```
-id = (hi - 1) * blockSize + lo        lo ∈ [1, blockSize]
+ids do bloco = [ valor, valor + incremento - 1 ]     ex.: 11 → 11..20
 ```
 
-Só o `hi` precisa ser único globalmente, e é ele que vem do banco. Efeitos
-observáveis em `/api/keys/hilo/insert`:
+Ou seja, **não há a multiplicação** `(hi - 1) * blockSize + lo` da descrição clássica
+do algoritmo: aqui o "hi" já vem escalado pelo banco. Dá para conferir em
+`sys.sequences`: depois de dois blocos consumidos, `current_value` é `11`, não `2`.
+
+Efeitos observáveis em `/api/keys/hilo/insert`:
 
 - a entidade tem id utilizável **antes** do `SaveChanges` (é atribuído no `Add()`);
 - o INSERT não precisa de `OUTPUT`/`SCOPE_IDENTITY()` para ler o id de volta;
@@ -161,7 +168,7 @@ observáveis em `/api/keys/hilo/insert`:
 - um grafo inteiro pode ir em um round-trip, pois as FKs já são conhecidas.
 
 **O preço:** a reserva do bloco é independente da transação de negócio — senão um
-rollback devolveria o `hi` e dois processos reusariam o bloco. Logo, um rollback
+rollback devolveria o bloco e dois processos o reusariam. Logo, um rollback
 (ou um restart da aplicação) **queima os ids restantes**: a sequência tem buracos.
 Isso é esperado, e é o trade-off do Hi/Lo. O endpoint de demo faz rollback de
 propósito para você ver os buracos.
