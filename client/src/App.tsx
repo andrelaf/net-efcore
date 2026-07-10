@@ -94,7 +94,7 @@ export default function App() {
           <h1>
             EF Core <span>10</span> · Demo
           </h1>
-          <p>.NET 10 · SQLite · React — cada demo mostra o SQL gerado</p>
+          <p>.NET 10 · SQL Server · React — cada demo mostra o SQL gerado</p>
         </div>
 
         {grouped.map(([group, demos]) => (
@@ -123,7 +123,7 @@ export default function App() {
             <h2>👈 Selecione uma demonstração</h2>
             <p>
               Cada item executa uma técnica do EF Core e exibe o SQL realmente
-              enviado ao SQLite, com parâmetros e tempo.
+              enviado ao SQL Server, com parâmetros e tempo.
             </p>
           </div>
         )}
